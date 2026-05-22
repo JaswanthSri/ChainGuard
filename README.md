@@ -1,6 +1,4 @@
-# ChainGuard
-
-### Serverless Real-Time Cold-Chain Integrity Platform
+# ChainGuard | Serverless Real-Time Cold-Chain Integrity Platform
 
 ChainGuard is a scalable, cloud-native, event-driven serverless backend platform built to solve
 real-time visibility challenges in cold-chain logistics. The architecture ingests concurrent
@@ -9,38 +7,47 @@ AWS-managed stream processing, storage, and anomaly detection pipeline.
 
 A modern, responsive, high-visibility monitoring dashboard consumes live infrastructure metrics
 and operational payloads directly via Amazon API Gateway and AWS Lambda REST handlers. To
-demonstrate a live, 24/7 production environment, the simulation layer is deployed on an
-independent cloud micro-server (AWS EC2), ensuring the dashboard reflects dynamic traffic
-continuously without local dependencies.
+demonstrate a live, 24/7 production environment, the simulation layer runs on an independent
+cloud micro-server (AWS EC2), ensuring the dashboard reflects dynamic traffic continuously
+without local dependencies.
 
 ---
 
-## Architecture Blueprint
+## AWS Cloud Stack & Technology Breakdown
 
-**Device Simulation Layer**
-Multi-threaded Python application simulating 5 concurrent transit delivery trucks broadcasting
-positional (GPS noise strings) and erratic environmental telemetry over MQTT. Deployed 24/7 on
-an AWS EC2 micro-server.
+This project utilizes a fully integrated suite of AWS services, operating within the AWS Free
+Tier limitations:
 
-**Ingestion Layer**
-AWS IoT Core Rules Broker routing incoming JSON strings asynchronously into specialized
-ingestion functions.
+**AWS EC2 (Elastic Compute Cloud)**
+Hosts the multi-threaded Python simulation script 24/7 inside an Ubuntu `t2.micro` instance
+using background execution (`nohup`), serving as our persistent edge-device simulator fleet.
 
-**Persistence Layer**
-Amazon DynamoDB dual-table ledger architecture separating structural time-series logs
-(`Telemetry`) from cached state layers (`Trucks`).
+**AWS IoT Core**
+Acts as the managed MQTT broker that handles secure device connectivity. It utilizes X.509
+certificates for truck authentication and applies an IoT SQL Rule to forward telemetry payloads
+to the ingestion tier.
 
-**Compute / Processing Engine**
-Asynchronous AWS Lambda pipeline executing geospatial Haversine path calculations and threshold
-drift validation checks to flag real-time structural asset failures (`Alerts`).
+**AWS Lambda**
+Powers the entire serverless, zero-maintenance compute layer through three dedicated functions:
 
-**API Ingress Layer**
-Amazon API Gateway exposing decoupled REST resources securely wrapped with global Cross-Origin
-Resource Sharing (CORS) configurations.
+- `ingestTelemetryFn` — Parses, validates, and records incoming payloads to the database.
+- `anomalyDetectionFn` — Computes geospatial Haversine path checks and tracks rolling thermal
+  limits asynchronously.
+- `apiHandlerFn` — Fetches database states and feeds cleanly structured data to the web client.
 
-**Frontend Hub**
-Single-page dashboard built with Tailwind CSS, Lucide icons, and polling-interval async fetch
-handlers optimized for zero build dependencies and deployed on Vercel.
+**Amazon DynamoDB**
+A fully managed, NoSQL, on-demand database optimized for high-speed write loops. Utilizes
+separate tables for time-series historic archives (`Telemetry`), a real-time vehicle state
+cache (`Trucks`), active incidents (`Alerts`), and expected geofences (`Routes`).
+
+**Amazon API Gateway**
+Exposes the backend Lambda functions as public, secure REST API endpoints (`GET /trucks` and
+`GET /alerts`) configured with full Cross-Origin Resource Sharing (CORS) policies to integrate
+with external clients.
+
+**Vercel (Frontend Hosting)**
+Hosts the static `index.html` file, providing global delivery, continuous GitHub deployment,
+and 4-second polling intervals to mirror live cloud telemetry.
 
 ---
 
