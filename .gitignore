@@ -1,0 +1,12 @@
+# Secret Credentials & Device Certs
+simulation/certs/*.pem
+simulation/certs/*.crt
+simulation/certs/*.key
+
+# Python Virtual Environments & Caches
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+.DS_Store

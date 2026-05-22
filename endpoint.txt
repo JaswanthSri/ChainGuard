@@ -1,0 +1,1 @@
+"endpointAddress": "a33oq8caya7891-ats.iot.ap-south-1.amazonaws.com"
